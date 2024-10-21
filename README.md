@@ -1,16 +1,9 @@
-# Differentiable Causal Discovery with Factor Graphs
+# Causal graph discovery final project: Stat256 (Berkeley), Fall 2024
 
-This repository contains an implementation of the structure learning method described in ["Large-Scale Differentiable Causal Discovery of Factor Graphs"](https://arxiv.org/abs/2206.07824). 
+This codebase begins with a fork of ["Large-Scale Differentiable Causal Discovery of Factor Graphs"](https://github.com/Genentech/dcdfg/tree/main).
+This is a group project by James Bowden, Carlos Guirado, and Hanyang Li.
 
-If you find it useful, please consider citing:
-```bibtex
-@inproceedings{Lopez2022largescale,
-  author = {Lopez, Romain and Hütter, Jan-Christian and Pritchard, Jonathan K. and Regev, Aviv}, 
-  title = {Large-Scale Differentiable Causal Discovery of Factor Graphs},
-  booktitle = {Advances in Neural Information Processing Systems},
-  year = {2022},
-}
-```
+# *Everything below is from the original repo, to be edited*.
 
 ## Requirements
 
