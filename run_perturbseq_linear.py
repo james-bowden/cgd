@@ -5,6 +5,7 @@ import numpy as np
 import pytorch_lightning as pl
 from pytorch_lightning.callbacks import EarlyStopping
 from pytorch_lightning.loggers import WandbLogger
+from pytorch_lightning.loggers import CSVLogger
 from torch.utils.data import DataLoader, random_split
 
 import wandb
@@ -13,6 +14,7 @@ from dcdfg.callback import (AugLagrangianCallback, ConditionalEarlyStopping,
 from dcdfg.linear_baseline.model import LinearGaussianModel
 from dcdfg.lowrank_linear_baseline.model import LinearModuleGaussianModel
 from dcdfg.lowrank_mlp.model import MLPModuleGaussianModel
+from dcdfg.dcdi.model import MLPGaussianModel
 from dcdfg.perturbseq_data import PerturbSeqDataset
 
 """
@@ -77,7 +79,7 @@ if __name__ == "__main__":
 
 
     parser.add_argument(
-        "--data-dir", type=str, default="../perturb-cite-seq/SCP1064/ready/"
+        "--data-dir", type=str, default="perturb-cite-seq/SCP1064/ready"
     )
     parser.add_argument("--num-gpus", type=int, default=1)
 
@@ -85,7 +87,8 @@ if __name__ == "__main__":
 
     # load data and make dataset
     folder = arg.data_dir
-    file = arg.data_dir + "/" + arg.data_path + "_gene_filtered_adata.h5ad"
+    # file = arg.data_dir + "/" + arg.data_path + "_gene_filtered_adata.h5ad"
+    file = os.path.join(arg.data_dir, arg.data_path, "gene_filtered_adata.h5ad")
 
     train_dataset = PerturbSeqDataset(
         file, number_genes=1000, fraction_regimes_to_ignore=0.2
@@ -131,6 +134,7 @@ if __name__ == "__main__":
         raise ValueError("couldn't find model")
 
     logger = WandbLogger(project="DCDI-train-" + arg.data_path, log_model=True)
+    # logger = CSVLogger(project="DCDI-train-" + arg.data_path, log_model=True)
     # LOG CONFIG
     model_name = model.__class__.__name__
     if arg.poly and model_name == "LinearGaussianModel":
@@ -173,6 +177,7 @@ if __name__ == "__main__":
 
     # Step 2:fine tune weights with frozen model
     logger = WandbLogger(project="DCDI-fine-" + arg.data_path, log_model=True)
+    # logger = CSVLogger(project="DCDI-fine-" + arg.data_path, log_model=True)
     model_name = model.__class__.__name__
     if arg.poly and model_name == "LinearGaussianModel":
         model_name += "_poly"

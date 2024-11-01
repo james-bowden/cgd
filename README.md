@@ -11,6 +11,11 @@ Python 3.9+ is required. To install the requirements:
 ```setup
 pip install -r requirements.txt
 ```
+You may also have to add the environment library to path, with 
+```
+export LD_LIBRARY_PATH=/path_to_env/env_name/lib/:$LD_LIBRARY_PATH
+```
+Additionally, updated torch may be required in order to run on your version of GPU.
 wandb is required for now (a PR to make remove this requirement is welcome). Follow the steps [here](https://docs.wandb.ai/quickstart).
 
 
