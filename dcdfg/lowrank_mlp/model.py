@@ -90,10 +90,20 @@ class MLPModuleGaussianModel(pl.LightningModule):
 
     def forward(self, data):
         x, masks, regimes = data
+        # x is N_datapoints by N_genes_measured; masks is same; regimes is N_datapoints,1
+        # b/c x, masks same size, mult is elementwise. sum is over N_datapoints dim.
+        # this models x as drawn from Normal(fwd(x), std)
         log_likelihood = torch.sum(
             self.module.log_likelihood(x) * masks, dim=0
         ) / masks.size(0)
+        # final shape is just N_genes_measured,1
         return -torch.mean(log_likelihood)
+
+    def mae(self, x, masks):
+        preds = self.module.forward(x) # dim 
+        preds_masked = preds # torch.multiply(preds, masks)
+        # mean over all elements, since trying to reconstruct x (vector for each dp)
+        return torch.mean(torch.abs(x-preds_masked))
 
     def get_augmented_lagrangian(self, nll, constraint_violation, reg):
         # compute augmented langrangian

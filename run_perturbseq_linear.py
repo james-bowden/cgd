@@ -2,6 +2,7 @@ import argparse
 import os
 
 import numpy as np
+import torch
 import pytorch_lightning as pl
 from pytorch_lightning.callbacks import EarlyStopping
 from pytorch_lightning.loggers import WandbLogger
@@ -207,11 +208,17 @@ if __name__ == "__main__":
         dataloaders=DataLoader(test_dataset, num_workers=8, batch_size=256),
     )
     held_out_nll = np.mean([x.item() for x in pred])
-
-    # Step 3: score adjacency matrix against groundtruth
+    # TODO: also want i_MAE
+    dd = torch.tensor(test_dataset.data.todense().astype('float')).to(dtype=torch.float32)
+    dm = torch.tensor(test_dataset.masks.astype(bool)) # .type_as(dd) # not sparse
+    # print(dd.shape, dm.shape)
+    held_out_mae = model.mae(dd, dm)
+      
+    #) Step 3: score adjacency matrix against groundtruth
     pred_adj = model.module.weight_mask.detach().cpu().numpy()
     # check integers
     assert np.equal(np.mod(pred_adj, 1), 0).all()
+    np.save("adj_matrix_cgm.npy", pred_adj)
     print("saved, now evaluating")
 
     # Step 4: add valid nll and dump metrics
@@ -228,5 +235,6 @@ if __name__ == "__main__":
             "val nll": val_nll,
             "acyclic": acyclic,
             "n_edges": pred_adj.sum(),
+            "interv_mae": held_out_mae
         }
     )

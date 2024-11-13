@@ -89,6 +89,11 @@ class LinearModuleGaussianModel(pl.LightningModule):
         ) / masks.size(0)
         return -torch.mean(log_likelihood)
 
+    def mae(self, x, masks):
+        preds = self.module.forward(x)
+        preds_masked = preds # torch.multiply(preds, masks)
+        return torch.mean(torch.abs(x-preds_masked))
+
     def get_augmented_lagrangian(self, nll, constraint_violation, reg):
         # compute augmented langrangian
         return (

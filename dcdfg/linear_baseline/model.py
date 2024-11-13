@@ -82,6 +82,12 @@ class LinearGaussianModel(pl.LightningModule):
         ) / masks.size(0)
         return -torch.mean(log_likelihood)
 
+    def mae(self, x, masks):
+        preds = self.module.forward(x)
+        # do I even need to mask again? this already happened in fwd, no? actually maybe not bc module fwd
+        preds_masked = preds # torch.multiply(preds, masks)
+        return torch.mean(torch.abs(x-preds_masked))
+
     def get_augmented_lagrangian(self, nll, constraint_violation, reg):
         # compute augmented langrangian
         return (
