@@ -74,6 +74,8 @@ class LinearGaussianModule(nn.Module):
             return self.spectral_radius_adj(w_adj)
         elif self.constraint_mode == "matrix_power":
             return self.compute_dag_constraint_power(w_adj)
+        elif self.constraint_mode == 'none':
+            return torch.tensor(0, dtype=torch.float32)
         else:
             raise ValueError(
                 "constraint_mode needs to be in ['native_exp', 'scipy_exp', 'spectral_radius', 'matrix_power']."
@@ -157,7 +159,9 @@ class LinearGaussianModule(nn.Module):
         log_likelihood = torch.sum(self.log_likelihood(x) * mask, dim=0) / mask.size(0)
         # constraint related, square as values could be negative
         pw_adj = torch.abs(self.get_w_adj())
-        h = self.compute_dag_constraint(pw_adj) / self.constraint_norm
+        h = self.compute_dag_constraint(pw_adj) 
+        if self.constraint_norm != 0:
+            h /= self.constraint_norm
         reg = pw_adj.sum() / pw_adj.shape[0] ** 2
         losses = (-torch.mean(log_likelihood), h, reg)
         return losses

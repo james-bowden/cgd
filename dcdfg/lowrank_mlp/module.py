@@ -210,6 +210,8 @@ class MLPModularGaussianModule(nn.Module):
             return self.compute_dag_constraint_spectral(
                 *self.gumbel_innout.get_proba_()
             )
+        elif self.constraint_mode == 'none':
+            return torch.tensor(0, dtype=torch.float32)
         else:
             raise ValueError(
                 "constraint_mode needs to be in ['exp', 'spectral_radius', 'matrix_power']."
