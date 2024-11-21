@@ -173,3 +173,11 @@ class LinearGaussianModule(nn.Module):
     def get_w_adj(self):
         """Get weighted adjacency matrix"""
         return self.weight_mask * self.weights
+
+    def get_f_adj(self):
+        """Doesn't have a factor graph; not low-rank."""
+        return None
+
+    def save(self, path):
+        np.save(path+'adj_mat_vars.npy', self.weight_mask.detach().cpu().numpy())
+        np.save(path+'W.npy', self.weights.detach().cpu().numpy())

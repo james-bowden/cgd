@@ -104,6 +104,10 @@ if __name__ == "__main__":
     train_size = int(0.8 * len(train_dataset))
     val_size = len(train_dataset) - train_size
     train_dataset, val_dataset = random_split(train_dataset, [train_size, val_size])
+
+    identifier = f'gauss-{arg.data_path}_m-{arg.model}_c-{arg.constraint_mode}_f-{arg.num_modules}_l-{arg.lr}_r-{arg.reg_coeff}/'
+    os.makedirs(identifier, exist_ok=True)
+
     if arg.model == "linear":
         # create model
         model = LinearGaussianModel(
@@ -222,10 +226,15 @@ if __name__ == "__main__":
             dataloaders=DataLoader(test_dataset, num_workers=8, batch_size=256),
         )
         held_out_nll = np.mean([x.item() for x in pred])
+        dd = torch.tensor(test_dataset.data.todense().astype('float')).to(dtype=torch.float32)
+        dm = torch.tensor(test_dataset.masks.astype(bool)) # .type_as(dd) # not sparse
+        held_out_mae = model.mae(dd, dm)
     else:
         held_out_nll = 0
+        held_out_mae = 0
 
     # Step 3: score adjacency matrix against groundtruth
+    model.module.save(identifier + '/')
     pred_adj = np.array(model.module.weight_mask.detach().cpu().numpy() > 0, dtype=int)
     # check integers
     assert np.equal(np.mod(pred_adj, 1), 0).all()
@@ -253,5 +262,6 @@ if __name__ == "__main__":
             "n_edges": pred_adj.sum(),
             "shd": shd,
             "fdr": fdr_score,
+            "interv_mae": held_out_mae,
         }
     )
