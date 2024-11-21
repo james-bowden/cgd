@@ -220,7 +220,7 @@ if __name__ == "__main__":
       
     #) Step 3: score adjacency matrix against groundtruth
     model.module.save(identifier)
-    # pred_adj = model.module.weight_mask.detach().cpu().numpy()
+    pred_adj = model.module.weight_mask.detach().cpu().numpy()
     # # check integers
     # assert np.equal(np.mod(pred_adj, 1), 0).all()
     # np.save(f"{identifier}/adj_matrix_cgm.npy", pred_adj)

@@ -356,6 +356,6 @@ class MLPModularGaussianModule(nn.Module):
         np.save(path+'adj_mat_vars.npy', self.weight_mask.detach().cpu().numpy())
         np.save(path+'adj_mat_vars_weighted.npy', self.get_w_adj().detach().cpu().numpy())
         np.save(path+'adj_mat_factors_weighted.npy', self.get_f_adj().detach().cpu().numpy())
-        U, V = self.gumbel_innout.get_proba()
+        U, V = self.gumbel_innout.get_proba_()
         np.save(path+'U.npy', U.detach().cpu().numpy()) # nodes to modules
         np.save(path+'V.npy', V.T.detach().cpu().numpy()) # modules to nodes
