@@ -105,7 +105,7 @@ if __name__ == "__main__":
     val_size = len(train_dataset) - train_size
     train_dataset, val_dataset = random_split(train_dataset, [train_size, val_size])
 
-    identifier = f'pseq-{arg.data_path}_m-{arg.model}_c-{arg.constraint_mode}_f-{arg.num_modules}_l-{arg.lr}_r-{arg.reg_coeff}/'
+    identifier = f'out/pseq-{arg.data_path}_m-{arg.model}_c-{arg.constraint_mode}_f-{arg.num_modules}_l-{arg.lr}_r-{arg.reg_coeff}/'
     os.makedirs(identifier, exist_ok=True)
 
     if arg.model == "linear":

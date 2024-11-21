@@ -2,6 +2,7 @@ import argparse
 import os
 
 import numpy as np
+import torch
 import pytorch_lightning as pl
 from pytorch_lightning.callbacks import EarlyStopping
 from pytorch_lightning.loggers import WandbLogger
@@ -106,7 +107,7 @@ if __name__ == "__main__":
     val_size = len(train_dataset) - train_size
     train_dataset, val_dataset = random_split(train_dataset, [train_size, val_size])
 
-    identifier = f"gauss-{arg.data_dir.replace('/', '--')}_m-{arg.model}_c-{arg.constraint_mode}_f-{arg.num_modules}_l-{arg.lr}_r-{arg.reg_coeff}/"
+    identifier = f"out/gauss-{arg.data_dir.split('/')[-1]}_m-{arg.model}_c-{arg.constraint_mode}_f-{arg.num_modules}_l-{arg.lr}_r-{arg.reg_coeff}/"
     os.makedirs(identifier, exist_ok=True)
 
     if arg.model == "linear":
@@ -142,7 +143,7 @@ if __name__ == "__main__":
         raise ValueError("couldn't find model")
 
     logger = WandbLogger(
-        project="DCDI-train-" + arg.data_dir.replace('/', '--'), log_model=True, reinit=True
+        project="DCDI-train-" + arg.data_dir.split('/')[-1], log_model=True, reinit=True
     )
     # LOG CONFIG
     model_name = model.__class__.__name__
@@ -191,7 +192,7 @@ if __name__ == "__main__":
 
     # Step 2:fine tune weights with frozen model
     logger = WandbLogger(
-        project="DCDI-fine-" + arg.data_dir.replace('/', '--'), log_model=True, reinit=True
+        project="DCDI-fine-" + arg.data_dir.split('/')[-1], log_model=True, reinit=True
     )
     # LOG CONFIG
     model_name = model.__class__.__name__
