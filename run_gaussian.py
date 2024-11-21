@@ -90,7 +90,8 @@ if __name__ == "__main__":
 
     # load data and make dataset
     folder = arg.data_dir
-    file = "data/simulated/" + arg.data_dir
+    # file = "data/simulated/" + arg.data_dir
+    file = arg.data_dir
 
     train_dataset = SimulationDataset(
         file, arg.i_dataset, fraction_regimes_to_ignore=0.2, intervention=not arg.obs
@@ -105,7 +106,7 @@ if __name__ == "__main__":
     val_size = len(train_dataset) - train_size
     train_dataset, val_dataset = random_split(train_dataset, [train_size, val_size])
 
-    identifier = f'gauss-{arg.data_path}_m-{arg.model}_c-{arg.constraint_mode}_f-{arg.num_modules}_l-{arg.lr}_r-{arg.reg_coeff}/'
+    identifier = f"gauss-{arg.data_dir.replace('/', '--')}_m-{arg.model}_c-{arg.constraint_mode}_f-{arg.num_modules}_l-{arg.lr}_r-{arg.reg_coeff}/"
     os.makedirs(identifier, exist_ok=True)
 
     if arg.model == "linear":
@@ -141,7 +142,7 @@ if __name__ == "__main__":
         raise ValueError("couldn't find model")
 
     logger = WandbLogger(
-        project="DCDI-train-" + arg.data_dir, log_model=True, reinit=True
+        project="DCDI-train-" + arg.data_dir.replace('/', '--'), log_model=True, reinit=True
     )
     # LOG CONFIG
     model_name = model.__class__.__name__
