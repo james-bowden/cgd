@@ -191,7 +191,7 @@ if __name__ == "__main__":
 
     # Step 2:fine tune weights with frozen model
     logger = WandbLogger(
-        project="DCDI-fine-" + arg.data_dir, log_model=True, reinit=True
+        project="DCDI-fine-" + arg.data_dir.replace('/', '--'), log_model=True, reinit=True
     )
     # LOG CONFIG
     model_name = model.__class__.__name__
@@ -240,7 +240,8 @@ if __name__ == "__main__":
     # check integers
     assert np.equal(np.mod(pred_adj, 1), 0).all()
     file = (
-        "data/simulated/" + arg.data_dir + "/" + "DAG" + str(arg.i_dataset) + ".npy"
+        # "data/simulated/" + arg.data_dir + "/" + "DAG" + str(arg.i_dataset) + ".npy"
+        arg.data_dir + "/" + "DAG" + str(arg.i_dataset) + ".npy"
     )
     truth = np.load(file)
     shd = shd_metric(pred_adj, truth)
