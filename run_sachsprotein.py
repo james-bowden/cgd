@@ -48,7 +48,10 @@ if __name__ == "__main__":
     parser.add_argument(
         "--num-fine-epochs", type=int, default=50, help="Number of meta gradient steps for fine-tuning"
     )
-    parser.add_argument("--num-modules", type=int, default=20, help="Number of modules in the model")
+    # parser.add_argument("--num-modules", type=int, default=20, help="Number of modules in the model")
+    # sweep 1, 2, 3, 4, 5, 10
+    parser.add_argument("--num-modules", type=int, default=5, help="Number of modules in the model")
+    
     
     # optimization
     parser.add_argument(
@@ -124,6 +127,9 @@ if __name__ == "__main__":
     val_size = len(train_dataset) - train_size
     train_dataset, val_dataset = random_split(train_dataset, [train_size, val_size])
 
+    identifier = f"out/sachs_m-{args.model}_c-{args.constraint_mode}_f-{args.num_modules}_l-{args.lr}_r-{args.reg_coeff}/"
+    os.makedirs(identifier, exist_ok=True)
+
     # Model selection
     if args.model == "linear":
         model = LinearGaussianModel(
@@ -165,8 +171,7 @@ if __name__ == "__main__":
         mode="min",
     )
     trainer = pl.Trainer(
-        devices=args.num_gpus,#gpus=args.num_gpus,
-        accelerator="cpu",
+        gpus=args.num_gpus,
         max_epochs=args.num_train_epochs,
         logger=logger,
         val_check_interval=1.0,
@@ -211,8 +216,13 @@ if __name__ == "__main__":
         dataloaders=DataLoader(test_dataset, num_workers=8, batch_size=256),
     )
     held_out_nll = np.mean([x.item() for x in pred])
+    # TODO: also want i_MAE
+    dd = torch.tensor(test_dataset.data.astype('float')).to(dtype=torch.float32)
+    dm = torch.tensor(test_dataset.masks.astype(bool)) # .type_as(dd) # not sparse
+    held_out_mae = model.mae(dd, dm)
 
     # Step 3: score adjacency matrix
+    model.module.save(identifier)
     pred_adj = model.module.weight_mask.detach().cpu().numpy()
     assert np.equal(np.mod(pred_adj, 1), 0).all()
     print("saved, now evaluating")
@@ -231,5 +241,6 @@ if __name__ == "__main__":
             "val nll": val_nll,
             "acyclic": acyclic,
             "n_edges": pred_adj.sum(),
+            "interv_mae": held_out_mae,
         }
     )

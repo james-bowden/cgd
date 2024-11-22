@@ -182,7 +182,6 @@ if __name__ == "__main__":
 
     # Step 2:fine tune weights with frozen model
     logger = WandbLogger(project="DCDI-fine-" + arg.data_path, log_model=True)
-    # logger = CSVLogger(project="DCDI-fine-" + arg.data_path, log_model=True)
     model_name = model.__class__.__name__
     if arg.poly and model_name == "LinearGaussianModel":
         model_name += "_poly"

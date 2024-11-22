@@ -14,4 +14,4 @@ tqdm==4.62.3
 wandb==0.12.11
 scikit-misc
 numba
-
+xlrd # for loading sachsprotein dataset

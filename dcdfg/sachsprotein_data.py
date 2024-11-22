@@ -179,21 +179,21 @@ class ProteinInterventionDataset(Dataset):
         # Create an initial mask with all proteins set to active (1)
         mask = [1] * len(self.protein_columns)
 
-        print(f"Intervention list: {intervention_list}")  # Debug: Print intervention list
+        # print(f"Intervention list: {intervention_list}")  # Debug: Print intervention list
 
     # Iterate through the interventions and modify the mask accordingly
         for intervention in intervention_list:
             if intervention in self.intervention_targets:
-                print(f"Processing intervention: {intervention}")  # Debug: Print current intervention being processed
+                # print(f"Processing intervention: {intervention}")  # Debug: Print current intervention being processed
                 intervention_info = self.intervention_targets[intervention]
                 for target in intervention_info['targets']:
                     if target in self.protein_columns:
                         target_index = self.protein_columns.index(target)
                     # Set to 0 for any intervention, regardless of whether activator or inhibitor
                         mask[target_index] = 0
-                        print(f"Setting protein '{target}' at index {target_index} to 0")  # Debug: Print which protein is being set to 0
+                        # print(f"Setting protein '{target}' at index {target_index} to 0")  # Debug: Print which protein is being set to 0
 
-        print(f"Generated mask: {mask}")  # Debug: Print generated mask
+        # print(f"Generated mask: {mask}")  # Debug: Print generated mask
         return mask
 
 
