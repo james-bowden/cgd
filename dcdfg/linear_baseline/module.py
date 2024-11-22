@@ -118,6 +118,7 @@ class LinearGaussianModule(nn.Module):
             x2 = x**2
             x3 = x**3
             y = torch.sum(torch.stack([x, x2, x3], axis=2) * self.poly_coeff, -1)
+            # TODO: ablate with and without biases?
             x = torch.matmul(y, self.weight_mask * self.weights) + self.biases
         else:
             x = torch.matmul(x, self.weight_mask * self.weights) + self.biases
@@ -181,3 +182,4 @@ class LinearGaussianModule(nn.Module):
     def save(self, path):
         np.save(path+'adj_mat_vars.npy', self.weight_mask.detach().cpu().numpy())
         np.save(path+'W.npy', self.weights.detach().cpu().numpy())
+        np.save(path+'B.npy', self.biases.detach().cpu().numpy())

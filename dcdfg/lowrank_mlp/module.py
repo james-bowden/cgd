@@ -359,3 +359,5 @@ class MLPModularGaussianModule(nn.Module):
         U, V = self.gumbel_innout.get_proba_()
         np.save(path+'U.npy', U.detach().cpu().numpy()) # nodes to modules
         np.save(path+'V.npy', V.T.detach().cpu().numpy()) # modules to nodes
+        # look at node2module thing, biases accompany weights? e.g., U_B, V_B
+        # np.save(path+'B.npy', self.biases.detach().cpu().numpy())

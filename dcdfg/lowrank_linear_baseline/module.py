@@ -181,3 +181,4 @@ class LinearModularGaussianModule(nn.Module):
         np.save(path+'adj_mat_factors_weighted.npy', self.get_f_adj().detach().cpu().numpy())
         np.save(path+'U.npy', self.weights_U.detach().cpu().numpy())
         np.save(path+'V.npy', self.weights_V.detach().cpu().numpy())
+        np.save(path+'B.npy', self.biases.detach().cpu().numpy())

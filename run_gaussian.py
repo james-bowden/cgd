@@ -228,7 +228,7 @@ if __name__ == "__main__":
             dataloaders=DataLoader(test_dataset, num_workers=8, batch_size=256),
         )
         held_out_nll = np.mean([x.item() for x in pred])
-        dd = torch.tensor(test_dataset.data.todense().astype('float')).to(dtype=torch.float32)
+        dd = torch.tensor(test_dataset.data.astype('float')).to(dtype=torch.float32)
         dm = torch.tensor(test_dataset.masks.astype(bool)) # .type_as(dd) # not sparse
         held_out_mae = model.mae(dd, dm)
     else:
