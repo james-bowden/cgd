@@ -30,7 +30,7 @@ class LinearModularGaussianModule(nn.Module):
         super(LinearModularGaussianModule, self).__init__()
         self.num_vars = num_vars
         self.constraint_mode = constraint_mode
-        self.num_modules = num_modules
+        self.num_modules = num_modules # here, this is just rank of the low-rank matrix!
         self.weights_U = nn.Parameter(data=torch.randn(self.num_vars, self.num_modules))
         self.weights_V = nn.Parameter(data=torch.randn(self.num_modules, self.num_vars))
         # initialize current adjacency matrix
@@ -167,3 +167,18 @@ class LinearModularGaussianModule(nn.Module):
     def get_w_adj(self):
         """Get weighted adjacency matrix"""
         return self.weight_mask * torch.matmul(self.weights_U, self.weights_V)
+
+    def get_f_adj(self):
+        """Get factor adjacency matrix
+        b/c factors go into vars in V, and nodes go into factors in U"""
+        # return torch.matmul(self.weights_V, self.weights_U)
+        # do we stick the weight mask in the middle?
+        return torch.matmul(self.weights_V, torch.matmul(self.weight_mask, self.weights_U))
+    
+    def save(self, path):
+        np.save(path+'adj_mat_vars.npy', self.weight_mask.detach().cpu().numpy())
+        np.save(path+'adj_mat_vars_weighted.npy', self.get_w_adj().detach().cpu().numpy())
+        np.save(path+'adj_mat_factors_weighted.npy', self.get_f_adj().detach().cpu().numpy())
+        np.save(path+'U.npy', self.weights_U.detach().cpu().numpy())
+        np.save(path+'V.npy', self.weights_V.detach().cpu().numpy())
+        np.save(path+'B.npy', self.biases.detach().cpu().numpy())

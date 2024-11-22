@@ -348,3 +348,16 @@ class MLPModularGaussianModule(nn.Module):
 
     def get_w_adj(self):
         return self.gumbel_innout.get_proba_features()
+
+    def get_f_adj(self):
+        return self.gumbel_innout.get_proba_modules()
+
+    def save(self, path):
+        np.save(path+'adj_mat_vars.npy', self.weight_mask.detach().cpu().numpy())
+        np.save(path+'adj_mat_vars_weighted.npy', self.get_w_adj().detach().cpu().numpy())
+        np.save(path+'adj_mat_factors_weighted.npy', self.get_f_adj().detach().cpu().numpy())
+        U, V = self.gumbel_innout.get_proba_()
+        np.save(path+'U.npy', U.detach().cpu().numpy()) # nodes to modules
+        np.save(path+'V.npy', V.T.detach().cpu().numpy()) # modules to nodes
+        # look at node2module thing, biases accompany weights? e.g., U_B, V_B
+        # np.save(path+'B.npy', self.biases.detach().cpu().numpy())

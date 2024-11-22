@@ -26,21 +26,22 @@ def init_params(graph, n_hidden=0):
     return causal_order, weights
 
 
-@njit
+# @njit
 def simulate_data_linear(
     n_samples, weights, causal_order, intervention_set, module_set
 ):
     n_nodes = causal_order.shape[0]
     data = np.zeros(shape=(n_samples, n_nodes))
     for node in causal_order:
+        node = node.astype(int)
         # each node is a function of its parents
         if node in intervention_set:
-            data[:, node] = np.random.normal(0, 1, size=(n_samples,))
+            data[:, node.squeeze()] = np.random.normal(0, 1, size=(n_samples,))
         else:
             # should be all zeros in the first node, and at most n-1 in the nth round
-            data[:, node] = np.dot(data, weights[:, node])
+            data[:, node] = np.dot(data, weights[:, node.squeeze()])
             if node not in module_set:
-                data[:, node] += np.random.normal(0, 0.4, size=(n_samples,))
+                data[:, node.squeeze()] += np.random.normal(0, 0.4, size=(n_samples,))
     return data
 
 @njit

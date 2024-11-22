@@ -104,6 +104,10 @@ if __name__ == "__main__":
     train_size = int(0.8 * len(train_dataset))
     val_size = len(train_dataset) - train_size
     train_dataset, val_dataset = random_split(train_dataset, [train_size, val_size])
+
+    identifier = f'out/pseq-{arg.data_path}_m-{arg.model}_c-{arg.constraint_mode}_f-{arg.num_modules}_l-{arg.lr}_r-{arg.reg_coeff}/'
+    os.makedirs(identifier, exist_ok=True)
+
     if arg.model == "linear":
         # create model
         model = LinearGaussianModel(
@@ -215,11 +219,12 @@ if __name__ == "__main__":
     held_out_mae = model.mae(dd, dm)
       
     #) Step 3: score adjacency matrix against groundtruth
+    model.module.save(identifier)
     pred_adj = model.module.weight_mask.detach().cpu().numpy()
-    # check integers
-    assert np.equal(np.mod(pred_adj, 1), 0).all()
-    np.save("adj_matrix_cgm.npy", pred_adj)
-    print("saved, now evaluating")
+    # # check integers
+    # assert np.equal(np.mod(pred_adj, 1), 0).all()
+    # np.save(f"{identifier}/adj_matrix_cgm.npy", pred_adj)
+    print("Saved, now evaluating")
 
     # Step 4: add valid nll and dump metrics
     pred = trainer_fine.predict(
@@ -235,6 +240,6 @@ if __name__ == "__main__":
             "val nll": val_nll,
             "acyclic": acyclic,
             "n_edges": pred_adj.sum(),
-            "interv_mae": held_out_mae
+            "interv_mae": held_out_mae,
         }
     )
