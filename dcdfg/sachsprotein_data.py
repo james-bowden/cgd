@@ -5,7 +5,16 @@ import numpy as np
 from torch.utils.data import Dataset
 
 class ProteinInterventionDataset(Dataset):
-    def __init__(self, file_map, base_dir, intervention_targets=None, normalize=False):
+    def __init__(
+            self, 
+            file_map, 
+            base_dir, 
+            intervention_targets=None, 
+            fraction_regimes_to_ignore=None,
+            regimes_to_ignore=None,
+            load_ignored=False,
+            normalize=False,
+    ) -> None:
         super(ProteinInterventionDataset, self).__init__()
 
         # Define the protein measurement columns explicitly before calling _load_data
@@ -17,13 +26,69 @@ class ProteinInterventionDataset(Dataset):
         self.file_map = file_map
         self.normalize = normalize  # Add normalize option
         
-        # Load all data and process interventions
-        self.data, self.masks, self.regimes, self.adata = self.load_data()
+        # load data
+        all_data, all_masks, all_regimes, adata = self.load_data()
+        self.adata = adata
+        # index of all regimes, even if not used in the regimes_to_ignore case
+        self.all_regimes_list = np.unique(all_regimes)
+        '''
+        obs_regime = np.unique(
+            all_regimes[np.where([mask == [] for mask in all_masks])[0]]
+        )
+        assert len(obs_regime) == 1
+        obs_regime = obs_regime[0]
+        '''
 
+        if fraction_regimes_to_ignore is not None or regimes_to_ignore is not None:
+            if fraction_regimes_to_ignore is not None and regimes_to_ignore is not None:
+                raise ValueError("either fraction or list, not both")
+            if fraction_regimes_to_ignore is not None:
+                np.random.seed(0)
+                '''
+                # make sure observational regime is in the training, and not in the testing
+                sampling_list = self.all_regimes_list[
+                    self.all_regimes_list != obs_regime
+                ]
+                '''
+                sampling_list = self.all_regimes_list
+                self.regimes_to_ignore = np.random.choice(
+                    sampling_list,
+                    int(fraction_regimes_to_ignore * len(sampling_list)),
+                )
+            else:
+                self.regimes_to_ignore = regimes_to_ignore
+            to_keep = np.array(
+                [
+                    regime not in self.regimes_to_ignore
+                    for regime in np.array(all_regimes)
+                ]
+            )
+            if not load_ignored:
+                data = all_data[to_keep]
+                masks = [mask for i, mask in enumerate(all_masks) if to_keep[i]]
+                regimes = np.array(
+                    [regime for i, regime in enumerate(all_regimes) if to_keep[i]]
+                )
+            else:
+                data = all_data[~to_keep]
+                masks = [mask for i, mask in enumerate(all_masks) if ~to_keep[i]]
+                regimes = np.array(
+                    [regime for i, regime in enumerate(all_regimes) if ~to_keep[i]]
+                )
+        else:
+            data = all_data
+            masks = all_masks
+            regimes = all_regimes
+
+        self.data = data
+        self.regimes = regimes
+        self.masks = np.array(masks, dtype=object)
+        self.intervention = True
+        
         # Extract basic dataset properties
+        self.num_regimes = len(set(self.regimes))
         self.num_samples = self.data.shape[0]
         self.dim = len(self.protein_columns)
-        self.num_regimes = len(set(self.regimes))
 
     def load_data(self):
         """
@@ -83,12 +148,12 @@ class ProteinInterventionDataset(Dataset):
 
         return data, masks, regimes, adata
     
-    
+    '''
     def _create_mask(self, intervention_list):
         """
         Create a binary mask for each sample based on its intervention, considering activators and inhibitors.
         :param list intervention_list: Intervention labels for the sample.
-        :return list mask: Binary mask indicating intervened (0) and unintervened (1) proteins.
+        :return list mask: Binary mask indicating inhibited (0) and active (1) proteins.
         """
         # Create an initial mask with all proteins set to active (1)
         mask = [1] * len(self.protein_columns)
@@ -109,7 +174,7 @@ class ProteinInterventionDataset(Dataset):
         """
         Create a binary mask for each sample based on its intervention, considering activators and inhibitors.
         :param list intervention_list: Intervention labels for the sample.
-        :return list mask: Binary mask indicating intervened (0) and unintervened (1) proteins.
+        :return list mask: Binary mask indicating inhibited (0) and active (1) proteins.
         """
         # Create an initial mask with all proteins set to active (1)
         mask = [1] * len(self.protein_columns)
@@ -130,7 +195,7 @@ class ProteinInterventionDataset(Dataset):
 
         print(f"Generated mask: {mask}")  # Debug: Print generated mask
         return mask
-    '''
+
 
     def __getitem__(self, idx):
         """

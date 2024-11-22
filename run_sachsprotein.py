@@ -17,7 +17,7 @@ from dcdfg.sachsprotein_data import ProteinInterventionDataset
 
 """
 USAGE:
-python -u run_protein_intervention.py --data-path control --reg-coeff 0.001 --constraint-mode spectral_radius --lr 0.01 --model linear
+python -u run_sachsprotein.py --reg-coeff 0.01 --constraint-mode spectral_radius --lr 0.01 --model linear
 """
 
 if __name__ == "__main__":
@@ -110,17 +110,19 @@ if __name__ == "__main__":
     }
 
     # Instantiate the dataset
-    dataset = ProteinInterventionDataset(
-        file_map, base_dir=args.data_dir, intervention_targets=intervention_targets, normalize=True
+    train_dataset = ProteinInterventionDataset(
+        file_map, base_dir=args.data_dir, intervention_targets=intervention_targets, fraction_regimes_to_ignore=0.2, normalize=True
+    )
+    regimes_to_ignore = train_dataset.regimes_to_ignore
+    test_dataset = ProteinInterventionDataset(
+        file_map, base_dir=args.data_dir, intervention_targets=intervention_targets, regimes_to_ignore=regimes_to_ignore, load_ignored=True, normalize=True
     )
 
+    nb_nodes = test_dataset.dim
 
-    # Split into training, validation, and test sets
-    train_size = int(args.train_samples * len(dataset))
-    val_size = len(dataset) - train_size
-    train_dataset, val_dataset = random_split(dataset, [train_size, val_size])
-
-    nb_nodes = len(dataset.protein_columns)
+    train_size = int(0.8 * len(train_dataset))
+    val_size = len(train_dataset) - train_size
+    train_dataset, val_dataset = random_split(train_dataset, [train_size, val_size])
 
     # Model selection
     if args.model == "linear":
@@ -150,7 +152,7 @@ if __name__ == "__main__":
             constraint_mode=args.constraint_mode,
         )
     else:
-        raise ValueError("Invalid model type specified.")
+        raise ValueError("couldn't find model")
 
     logger = WandbLogger(project="DCDI-train-2005-sachs-protein", log_model=True)
     
@@ -206,14 +208,14 @@ if __name__ == "__main__":
     # EVAL on held-out data
     pred = trainer_fine.predict(
         ckpt_path="best",
-        dataloaders=DataLoader(val_dataset, num_workers=8, batch_size=256),
+        dataloaders=DataLoader(test_dataset, num_workers=8, batch_size=256),
     )
     held_out_nll = np.mean([x.item() for x in pred])
 
     # Step 3: score adjacency matrix
     pred_adj = model.module.weight_mask.detach().cpu().numpy()
     assert np.equal(np.mod(pred_adj, 1), 0).all()
-    print("Saved and evaluated.")
+    print("saved, now evaluating")
 
     # Step 4: add valid NLL and dump metrics
     pred = trainer_fine.predict(
@@ -223,3 +225,11 @@ if __name__ == "__main__":
     val_nll = np.mean([x.item() for x in pred])
 
     acyclic = int(model.module.check_acyclicity())
+    wandb.log(
+        {
+            "interv_nll": held_out_nll,
+            "val nll": val_nll,
+            "acyclic": acyclic,
+            "n_edges": pred_adj.sum(),
+        }
+    )
