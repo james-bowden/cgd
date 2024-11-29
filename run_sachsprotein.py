@@ -2,6 +2,7 @@ import argparse
 import os
 
 import numpy as np
+import torch
 import pytorch_lightning as pl
 from pytorch_lightning.callbacks import EarlyStopping
 from pytorch_lightning.loggers import WandbLogger
