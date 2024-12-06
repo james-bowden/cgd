@@ -193,6 +193,7 @@ if __name__ == "__main__":
     model.mu = 0.0
 
     # Step 2: Fine-tune weights with frozen model
+    # TODO: should have been "fine"....
     logger = WandbLogger(project="DCDI-train-2005-sachs-protein", log_model=True)
     early_stop_2_callback = EarlyStopping(
         monitor="Val/nll", min_delta=1e-6, patience=5, verbose=True, mode="min"
