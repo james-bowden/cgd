@@ -3,6 +3,8 @@
 This codebase begins with a fork of ["Large-Scale Differentiable Causal Discovery of Factor Graphs"](https://github.com/Genentech/dcdfg/tree/main).
 This is a group project by James Bowden, Carlos Guirado, and Hanyang Li.
 
+This repository contains the experiments on both the Perturb-CITE-seq and Sachs protein datasets.
+
 # *Everything below is from the original repo, to be edited*.
 
 ## Requirements
